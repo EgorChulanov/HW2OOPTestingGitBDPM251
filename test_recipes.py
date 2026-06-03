@@ -65,5 +65,71 @@ def test_recipe_scale_invalid():
 def test_recipe_len():
     recipe = Recipe("Паста")
     recipe.add_ingredient(Ingredient("Макароны", 300, "г"))
-    recipe.add_ingredient(Ingredient("Соль", 5, "г"))
+    recipe.add_ingredient(Ingredient("Соль", 200000, "г"))
     assert len(recipe) == 2
+
+def test_shopping_add_recipe():
+    sl = ShoppingList()
+    recipe = Recipe("Салат")
+    recipe.add_ingredient(Ingredient("Арбуз", 1000, "г"))
+    sl.add_recipe(recipe, 2)
+    items = sl.get_list()
+    assert len(items) == 1
+    assert items[0].quantity == 2000.0
+
+def test_shopping_add_recipe_invalid_portions():
+    sl = ShoppingList()
+    recipe = Recipe("Салат")
+    with pytest.raises(ValueError):
+        sl.add_recipe(recipe, 0)
+
+def test_shopping_remove_recipe():
+    sl = ShoppingList()
+    recipe = Recipe("Компот")
+    recipe.add_ingredient(Ingredient("Абрикос", 500, "г"))
+    sl.add_recipe(recipe, 1)
+    sl.remove_recipe("Компот")
+    assert sl.get_list() == []
+
+def test_shopping_remove_nonexistent():
+    sl = ShoppingList()
+    sl.remove_recipe("Нет такого")
+
+def test_shopping_get_list_sums():
+    sl = ShoppingList()
+    recipe1 = Recipe("Смузи")
+    recipe2 = Recipe("Десерт")
+    recipe1.add_ingredient(Ingredient("Банан", 200, "г"))
+    recipe2.add_ingredient(Ingredient("Банан", 300, "г"))
+    sl.add_recipe(recipe1, 1)
+    sl.add_recipe(recipe2, 1)
+    result = sl.get_list()
+    assert result[0].quantity == 500.0
+
+def test_shopping_get_list_sorted():
+    sl = ShoppingList()
+    recipe = Recipe("Фруктовый салат")
+    recipe.add_ingredient(Ingredient("Черешня", 100, "г"))
+    recipe.add_ingredient(Ingredient("Абрикос", 200, "г"))
+    sl.add_recipe(recipe, 1)
+    names = [ing.name for ing in sl.get_list()]
+    assert names == sorted(names)
+
+def test_shopping_add_operator():
+    sl1 = ShoppingList()
+    sl2 = ShoppingList()
+    recipe = Recipe("Компот")
+    recipe.add_ingredient(Ingredient("Вишня", 400, "г"))
+    sl1.add_recipe(recipe, 1)
+    combined = sl1 + sl2
+    assert combined is not sl1
+    assert combined is not sl2
+
+def test_shopping_add_operator_original_unchanged():
+    sl1 = ShoppingList()
+    sl2 = ShoppingList()
+    recipe = Recipe("Компот")
+    recipe.add_ingredient(Ingredient("Вишня", 400, "г"))
+    sl1.add_recipe(recipe, 1)
+    sl1 + sl2
+    assert len(sl1._items) == 1
