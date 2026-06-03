@@ -62,3 +62,42 @@ class Recipe:
         for ing in self.ingredients:
             result += str(ing) + " , "
         return result
+
+
+class ShoppingList:
+    def __init__(self):
+        self._items = []
+    def add_recipe(self, recipe, portions):
+        if portions <= 0:
+            raise ValueError("Количество порций должно быть положительным")
+        scaled = recipe.scale(portions)
+        for ingredient in scaled.ingredients:
+            self._items.append((ingredient, recipe.title))
+    def remove_recipe(self, title):
+        new_items = []
+        for ing, t in self._items:
+            if t != title:
+                new_items.append((ing, t))
+        self._items = new_items
+
+    def get_list(self):
+        totals = {}
+        for ing, t in self._items:
+            key = (ing.name, ing.unit)
+            if key in totals:
+                totals[key] += ing.quantity
+            else:
+                totals[key] = ing.quantity
+        result = []
+        for (name, unit), qty in totals.items():
+            result.append(Ingredient(name, qty, unit))
+        for i in range(len(result)):
+            for j in range(i + 1, len(result)):
+                if result[i].name > result[j].name:
+                    result[i], result[j] = result[j], result[i]
+        return result
+
+    def __add__(self, list2):
+        new_list = ShoppingList()
+        new_list._items = self._items +  list2._items
+        return new_list
